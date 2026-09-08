@@ -1,0 +1,72 @@
+name: Check and publish
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Windows tests and build
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      UV_PYTHON: '3.12'
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: '0.12.10'
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: Check release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          uv run --locked python -c "import os,tomllib; p=tomllib.load(open('pyproject.toml','rb')); expected='v'+p['project']['version']; actual=os.environ['GITHUB_REF_NAME']; assert actual == expected, f'Tag {actual} must equal {expected}'"
+      - name: Lint
+        run: uv run --locked ruff check src tests
+      - name: Check formatting
+        run: uv run --locked ruff format --check src tests
+      - name: Run offline tests
+        run: uv run --locked python -m unittest discover -v
+      - name: Build distributions
+        run: uv build --no-sources
+      - name: Validate distribution metadata
+        run: uvx --from twine twine check --strict dist/*
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-distributions
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish to PyPI
+    needs: check
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.repository == 'dengbojing/everything-mcp'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/project/evryth-mcp/
+    concurrency:
+      group: pypi-publish
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+    steps:
+      - name: Download checked distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: python-distributions
+          path: dist/
+      - name: Publish with Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@release/v1

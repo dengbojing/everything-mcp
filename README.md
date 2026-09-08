@@ -1,10 +1,12 @@
-# Everything MCP
+# evryth-mcp
 
 通过 MCP 调用 Windows 本机 Everything 索引，查找文件和目录。提供 12 个搜索及辅助工具，支持路径、扩展名、大小和修改日期筛选，返回完整路径及文件元数据。
 
 ## 安装准备
 
-需要 Windows、Everything、ES、uv（提供 uvx）及 Git，Python 版本要求为 3.11+。
+当前版本仅支持在 Windows 上运行，依赖本机 Everything 和 ES；macOS、Linux 及其他 Unix 类系统暂不支持原生运行。
+
+需安装 Everything、ES、uv（提供 uvx）及 Git，Python 版本要求为 3.11+。
 
 1. 从 [voidtools 下载页](https://www.voidtools.com/downloads/) 安装 Everything，并保持运行。
 2. 在同一页面下载 **Everything Command-line Interface（ES）**，解压到固定目录。
@@ -16,8 +18,6 @@ Everything 与 ES 是不同组件。如果已安装全局 ES，且客户端能�
 
 ```powershell
 es -version
-es -get-everything-version
-es "报告"
 ```
 
 ## MCP 配置
@@ -32,16 +32,42 @@ es "报告"
       "args": [
         "--from",
         "git+https://github.com/dengbojing/everything-mcp.git",
-        "everything-mcp"
+        "evryth-mcp"
       ]
     }
   }
 }
 ```
 
-保存并连接后，调用 `everything_status`，返回 `connected: true` 即连接成功。可在仓库地址后添加已发布的标签或提交 SHA 固定版本。
+以上 GitHub 配置需要仓库已包含新的启动入口。发布到 PyPI 后，可将 `args` 简化为 `["evryth-mcp"]`，即 `uvx evryth-mcp`，届时无需 Git。
 
-ES 不在客户端 PATH 中时，才需要在 env 中指定 `EVERYTHING_ES_PATH` 为 es.exe 的绝对路径；命名实例可通过 `EVERYTHING_INSTANCE` 指定。
+如果 ES 已在客户端 PATH 中且使用默认 Everything 实例，上面的配置即可，无需添加环境变量。
+
+需要指定 ES 路径或命名实例时，在 `everything-es` 配置中添加 `env`：
+
+```json
+{
+  "mcpServers": {
+    "everything-es": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/dengbojing/everything-mcp.git",
+        "evryth-mcp"
+      ],
+      "env": {
+        "EVERYTHING_ES_PATH": "D:\\Tools\\Everything\\es.exe",
+        "EVERYTHING_INSTANCE": "Work"
+      }
+    }
+  }
+}
+```
+
+- `EVERYTHING_ES_PATH`：替换为实际 `es.exe` 的绝对路径，不是 `Everything.exe` 或目录；客户端能从 PATH 找到 ES 时可删除此项。
+- `EVERYTHING_INSTANCE`：填写已运行的 Everything 命名实例名称，示例为 `Work`；使用默认实例时删除此项。它不会自动创建或启动实例。
+
+这两项可独立使用；如果都不需要，删除整个 `env`。
 
 ## 工具
 

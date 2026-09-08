@@ -212,7 +212,7 @@ wheels = [
 ]
 
 [[package]]
-name = "everything-es-mcp"
+name = "evryth-mcp"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

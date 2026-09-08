@@ -1,5 +1,5 @@
 [project]
-name = "everything-es-mcp"
+name = "evryth-mcp"
 version = "0.1.0"
 description = "Read-only Windows Everything search over MCP stdio"
 requires-python = ">=3.11"
@@ -7,7 +7,7 @@ dependencies = ["mcp>=1.10.1,<2", "pypinyin>=0.55,<1", "pydantic>=2.7,<3"]
 readme = "README.md"
 
 [project.scripts]
-everything-mcp = "everything_mcp.server:main"
+evryth-mcp = "everything_mcp.server:main"
 
 [build-system]
 requires = ["hatchling"]
