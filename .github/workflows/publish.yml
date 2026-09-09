@@ -80,28 +80,32 @@ jobs:
       - name: Publish with Trusted Publishing
         uses: pypa/gh-action-pypi-publish@release/v1
 
-  release:
-    name: Create tag and GitHub Release
+  tag:
+    name: Create version tag
     needs: [check, publish]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write
     steps:
-      - name: Download published distributions
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          name: python-distributions
-          path: dist/
-      - name: Create release at the tested commit
+          ref: ${{ github.sha }}
+      - name: Create tag at the tested commit
         env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ needs.check.outputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
-          gh release create "$RELEASE_TAG" dist/*.whl dist/*.tar.gz \
-            --target "$GITHUB_SHA" \
-            --title "$RELEASE_TAG" \
-            --generate-notes
+          existing=$(git ls-remote --tags origin "refs/tags/$RELEASE_TAG")
+          if [[ -n "$existing" ]]; then
+            git fetch origin "refs/tags/$RELEASE_TAG"
+            if [[ "$(git rev-parse 'FETCH_HEAD^{commit}')" != "$GITHUB_SHA" ]]; then
+              echo "Tag $RELEASE_TAG already points to another commit" >&2
+              exit 1
+            fi
+            echo "Tag $RELEASE_TAG already exists at the tested commit"
+            exit 0
+          fi
+          git tag "$RELEASE_TAG" "$GITHUB_SHA"
+          git push origin "refs/tags/$RELEASE_TAG"

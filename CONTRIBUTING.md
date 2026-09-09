@@ -40,7 +40,7 @@ Changes to public tool names or schemas require explicit compatibility review.
 on Windows for branch pushes and pull requests. A push to `master` in the original
 repository also publishes the checked artifacts to PyPI if the version's `v*`
 tag does not exist. After publishing succeeds, it creates that tag at the tested
-commit and a GitHub Release with generated notes and the wheel/source archives.
+commit. It does not create a GitHub Release; distributions are available on PyPI.
 PRs and other branches never publish. Only stable public versions are automated.
 The separate Linux publishing job uploads artifacts; it does not run Everything.
 No local publishing script or long-lived PyPI token is required.
@@ -59,7 +59,7 @@ One-time setup:
    - Environment: `pypi`
    For an existing project, add the publisher in its publishing settings.
 3. Protect `master` and release tags. Ensure repository rules permit the workflow's
-   `GITHUB_TOKEN` to create release tags; only the release job has `contents: write`.
+   `GITHUB_TOKEN` to create release tags; only the tag job has `contents: write`.
 
 To release, update `project.version` in `pyproject.toml`, run `uv lock`, and commit
 and push the changes to `master`:
@@ -71,9 +71,10 @@ git push origin master
 Use a new version for each release; published distribution filenames cannot be
 reused. Configure the PyPI publisher before pushing an untagged version to master.
 Do not create tags manually: an existing version tag skips automatic publishing.
-If PyPI succeeds but the release job fails, rerun only the failed job in the same
-Actions run; do not rebuild and re-upload the published version. If a partial
-GitHub Release already exists, inspect and complete it manually before retrying.
+If PyPI succeeds but the tag job fails, rerun only the failed job in the same
+Actions run; do not rebuild and re-upload the published version. An existing tag
+at the tested commit is accepted on retry; a tag pointing elsewhere fails without
+being overwritten.
 Branch runs are serialized; GitHub may replace older pending runs with newer ones.
 If the repository is renamed, update both the workflow repository guard and PyPI
 publisher settings.

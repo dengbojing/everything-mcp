@@ -6,7 +6,7 @@
 
 当前版本仅支持在 Windows 上运行，依赖本机 Everything 和 ES；macOS、Linux 及其他 Unix 类系统暂不支持原生运行。
 
-需安装 Everything、ES、uv（提供 uvx）及 Git，Python 版本要求为 3.11+。
+需安装 Everything、ES 和 uv（提供 uvx），Python 版本要求为 3.11+。通过 PyPI 安装，无需 Git 或克隆仓库。
 
 1. 从 [voidtools 下载页](https://www.voidtools.com/downloads/) 安装 Everything，并保持运行。
 2. 在同一页面下载 **Everything Command-line Interface（ES）**，解压到固定目录。
@@ -22,6 +22,8 @@ es -version
 
 ## MCP 配置
 
+使用 `uvx evryth-mcp` 从 [PyPI](https://pypi.org/project/evryth-mcp/) 自动安装并启动，无需提前执行 `pip install`。
+
 适用于使用 `mcpServers` JSON 格式的客户端：
 
 ```json
@@ -29,17 +31,13 @@ es -version
   "mcpServers": {
     "everything-es": {
       "command": "uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/dengbojing/everything-mcp.git",
-        "evryth-mcp"
-      ]
+      "args": ["evryth-mcp"]
     }
   }
 }
 ```
 
-以上 GitHub 配置需要仓库已包含新的启动入口。发布到 PyPI 后，可将 `args` 简化为 `["evryth-mcp"]`，即 `uvx evryth-mcp`，届时无需 Git。
+连接后调用 `everything_status`，确认返回 `connected: true`。
 
 如果 ES 已在客户端 PATH 中且使用默认 Everything 实例，上面的配置即可，无需添加环境变量。
 
@@ -50,11 +48,7 @@ es -version
   "mcpServers": {
     "everything-es": {
       "command": "uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/dengbojing/everything-mcp.git",
-        "evryth-mcp"
-      ],
+      "args": ["evryth-mcp"],
       "env": {
         "EVERYTHING_ES_PATH": "D:\\Tools\\Everything\\es.exe",
         "EVERYTHING_INSTANCE": "Work"
