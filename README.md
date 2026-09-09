@@ -1,5 +1,7 @@
 # evryth-mcp
 
+[English](README.en.md) | 简体中文
+
 通过 MCP 调用 Windows 本机 Everything 索引，查找文件和目录。提供 12 个搜索及辅助工具，支持路径、扩展名、大小和修改日期筛选，返回完整路径及文件元数据。
 
 ## 安装准备
